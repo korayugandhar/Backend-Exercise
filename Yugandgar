@@ -1,0 +1,48 @@
+import unittest
+import os
+import csv
+from get_papers_list.utils import export_to_csv, print_results
+from io import StringIO
+import sys
+
+class TestUtils(unittest.TestCase):
+    def setUp(self):
+        self.data = [
+            {
+                'PubmedID': '12345',
+                'Title': 'Sample Research Title',
+                'Publication Date': '2024',
+                'Non-academic Author(s)': 'John Doe',
+                'Company Affiliation(s)': 'ACME Biotech',
+                'Corresponding Author Email': 'john@acme.com'
+            }
+        ]
+        self.test_file = 'test_output.csv'
+
+    def tearDown(self):
+        if os.path.exists(self.test_file):
+            os.remove(self.test_file)
+
+    def test_export_to_csv_creates_file_with_correct_data(self):
+        export_to_csv(self.data, self.test_file)
+        self.assertTrue(os.path.exists(self.test_file))
+
+        with open(self.test_file, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            rows = list(reader)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]['PubmedID'], '12345')
+            self.assertEqual(rows[0]['Title'], 'Sample Research Title')
+
+    def test_print_results_outputs_to_console(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+        print_results(self.data)
+        sys.stdout = sys.__stdout__
+
+        output = captured_output.getvalue()
+        self.assertIn('PubmedID: 12345', output)
+        self.assertIn('Title: Sample Research Title', output)
+
+if __name__ == '__main__':
+    unittest.main()
